@@ -29,7 +29,7 @@ export default function BookForm({ onSuccess, editingBook, setEditingBook }: Boo
     }
   }, [editingBook])
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const payload = {
       ...form,
