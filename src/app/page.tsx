@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -24,7 +25,21 @@ export default function LoginPage() {
 
       router.push("/dashboard");
     } catch (err: unknown) {
-      setError(err?.response?.data?.message || "Login failed");
+      if (
+        typeof err === "object" &&
+        err !== null &&
+        "response" in err &&
+        typeof (err as any).response === "object" &&
+        (err as any).response !== null &&
+        "data" in (err as any).response &&
+        typeof (err as any).response.data === "object" &&
+        (err as any).response.data !== null &&
+        "message" in (err as any).response.data
+      ) {
+        setError((err as any).response.data.message || "Login failed");
+      } else {
+        setError("Login failed");
+      }
     }
   };
 
