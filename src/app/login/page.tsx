@@ -1,12 +1,12 @@
-'use client';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import API from '@/lib/app';
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import API from "@/lib/app";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -14,17 +14,17 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     try {
-      const res = await API.post('/auth/login', form);
+      const res = await API.post("/auth/login", form);
       const token = res.data.token;
 
       // ✅ Store token in localStorage
-      localStorage.setItem('token', token);
+      localStorage.setItem("token", token);
 
-      router.push('/dashboard');
-    } catch (err: any) {
-      setError(err?.response?.data?.message || 'Login failed');
+      router.push("/dashboard");
+    } catch (err: unknown) {
+      setError(err?.response?.data?.message || "Login failed");
     }
   };
 
