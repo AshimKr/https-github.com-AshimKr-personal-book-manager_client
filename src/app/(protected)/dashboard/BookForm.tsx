@@ -3,7 +3,19 @@
 import { useState, useEffect } from 'react'
 import axios from '@/lib/axios'
 
-export default function BookForm({ onSuccess, editingBook, setEditingBook }) {
+type BookFormProps = {
+  onSuccess: () => void;
+  editingBook: {
+    _id: string;
+    title: string;
+    author: string;
+    tags: string[];
+    status: string;
+  } | null;
+  setEditingBook: (book: BookFormProps['editingBook']) => void;
+};
+
+export default function BookForm({ onSuccess, editingBook, setEditingBook }: BookFormProps) {
   const [form, setForm] = useState({ title: '', author: '', tags: '', status: 'Want to Read' })
 
   useEffect(() => {
