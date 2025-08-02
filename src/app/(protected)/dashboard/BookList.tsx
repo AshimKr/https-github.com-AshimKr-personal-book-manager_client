@@ -2,8 +2,22 @@
 
 import axios from '@/lib/axios'
 
-export default function BookList({ books, onEdit, onDelete }) {
-  const deleteBook = async (id) => {
+type Book = {
+  _id: string;
+  title: string;
+  author: string;
+  status: string;
+  tags: string[];
+};
+
+type BookListProps = {
+  books: Book[];
+  onEdit: (book: Book) => void;
+  onDelete: () => void;
+};
+
+export default function BookList({ books, onEdit, onDelete }: BookListProps) {
+  const deleteBook = async (id: string) => {
     await axios.delete(`/books/${id}`)
     onDelete()
   }
