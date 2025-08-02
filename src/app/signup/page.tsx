@@ -18,7 +18,13 @@ export default function SignupPage() {
       await API.post('/auth/signup', form);
       router.push('/login'); // Redirect to login after signup
     } catch (err: unknown) {
-      setError(err?.response?.data?.message || 'Signup failed');
+      if (typeof err === 'object' && err !== null && 'response' in err) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        setError(err.response?.data?.message || 'Signup failed');
+      } else {
+        setError('Signup failed');
+      }
     }
   };
 
