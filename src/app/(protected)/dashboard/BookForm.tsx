@@ -80,11 +80,41 @@ export default function BookForm({ editingBook, setEditingBook, onSaved }: Props
       setTagsInput('');
       setEditingBook(null);
       onSaved();
-    } catch (err: any) {
-      const message =
-        err?.response?.data?.message ||
-        err?.message ||
-        'Something went wrong while saving the book.';
+    } catch (err: unknown) {
+      let message = 'Something went wrong while saving the book.';
+
+      type ApiError = {
+        response?: {
+          data?: {
+            message?: string;
+            [key: string]: unknown;
+          };
+          [key: string]: unknown;
+        };
+        message?: string;
+        [key: string]: unknown;
+      };
+
+      if (typeof err === 'object' && err !== null) {
+        const errorObj = err as ApiError;
+        if (
+          errorObj.response &&
+          typeof errorObj.response === 'object' &&
+          errorObj.response !== null
+        ) {
+          const response = errorObj.response;
+          if (
+            response.data &&
+            typeof response.data === 'object' &&
+            response.data !== null &&
+            'message' in response.data
+          ) {
+            message = response.data.message as string;
+          }
+        } else if (errorObj.message && typeof errorObj.message === 'string') {
+          message = errorObj.message;
+        }
+      }
       setError(message);
     } finally {
       setSaving(false);
