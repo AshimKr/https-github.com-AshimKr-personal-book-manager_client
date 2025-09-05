@@ -27,7 +27,7 @@ const EMPTY_BOOK: Book = {
 
 export default function BookForm({ editingBook, setEditingBook, onSaved }: Props) {
   const [form, setForm] = useState<Book>(EMPTY_BOOK);
-  const [tagsInput, setTagsInput] = useState(''); // keep raw input to avoid cursor jump
+  const [tagsInput, setTagsInput] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -128,7 +128,6 @@ export default function BookForm({ editingBook, setEditingBook, onSaved }: Props
         value={tagsInput}
         onChange={(e) => setTagsInput(e.target.value)}
         onBlur={() => {
-          // normalize lightly on blur (optional)
           setTagsInput(parseTags(tagsInput).join(', '));
         }}
       />

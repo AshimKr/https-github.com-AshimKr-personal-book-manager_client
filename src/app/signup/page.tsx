@@ -21,7 +21,6 @@ export default function SignupPage() {
     setError(null);
     try {
       await api.post('/auth/signup', form);
-      // optionally auto-login; for now just redirect
       router.push('/login');
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || 'Signup failed';

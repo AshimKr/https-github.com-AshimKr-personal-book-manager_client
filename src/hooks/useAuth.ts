@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-// Client-side guard: redirect to /login when no token found
+// redirect to /login when no token found
 export default function useAuth() {
   const router = useRouter();
   useEffect(() => {
