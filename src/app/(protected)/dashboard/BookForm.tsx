@@ -1,63 +1,170 @@
-'use client'
+'use client';
+import { useEffect, useMemo, useState } from 'react';
+import api from '@/lib/api';
 
-import { useState, useEffect } from 'react'
-import axios from '@/lib/axios'
+type BookStatus = 'Want to Read' | 'Reading' | 'Completed';
 
-type BookFormProps = {
-  onSuccess: () => void;
-  editingBook: {
-    _id: string;
-    title: string;
-    author: string;
-    tags: string[];
-    status: string;
-  } | null;
-  setEditingBook: (book: BookFormProps['editingBook']) => void;
+type Book = {
+  _id?: string;
+  title: string;
+  author: string;
+  tags: string[];
+  status: BookStatus;
 };
 
-export default function BookForm({ onSuccess, editingBook, setEditingBook }: BookFormProps) {
-  const [form, setForm] = useState({ title: '', author: '', tags: '', status: 'Want to Read' })
+type Props = {
+  editingBook: Book | null;
+  setEditingBook: (b: Book | null) => void;
+  onSaved: () => void;
+};
 
+const EMPTY_BOOK: Book = {
+  title: '',
+  author: '',
+  tags: [],
+  status: 'Want to Read',
+};
+
+export default function BookForm({ editingBook, setEditingBook, onSaved }: Props) {
+  const [form, setForm] = useState<Book>(EMPTY_BOOK);
+  const [tagsInput, setTagsInput] = useState(''); // keep raw input to avoid cursor jump
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const isEdit = useMemo(() => Boolean(form._id), [form._id]);
+
+  // Populate form when editing an existing book
   useEffect(() => {
     if (editingBook) {
       setForm({
-        title: editingBook.title,
-        author: editingBook.author,
-        tags: editingBook.tags.join(', '),
-        status: editingBook.status
-      })
-    }
-  }, [editingBook])
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const payload = {
-      ...form,
-      tags: form.tags.split(',').map((t) => t.trim())
-    }
-
-    if (editingBook) {
-      await axios.put(`/books/${editingBook._id}`, payload)
+        _id: editingBook._id,
+        title: editingBook.title ?? '',
+        author: editingBook.author ?? '',
+        tags: Array.isArray(editingBook.tags) ? editingBook.tags : [],
+        status: editingBook.status ?? 'Want to Read',
+      });
+      setTagsInput((editingBook.tags ?? []).join(', '));
     } else {
-      await axios.post('/books', payload)
+      setForm(EMPTY_BOOK);
+      setTagsInput('');
     }
+  }, [editingBook]);
 
-    setForm({ title: '', author: '', tags: '', status: 'Want to Read' })
-    setEditingBook(null)
-    onSuccess()
-  }
+  const parseTags = (raw: string) =>
+    raw
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (saving) return;
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      const payload: Book = {
+        ...form,
+        tags: parseTags(tagsInput),
+      };
+
+      if (payload._id) {
+        await api.put(`/books/${payload._id}`, payload);
+      } else {
+        await api.post('/books', payload);
+      }
+
+      // reset after success
+      setForm(EMPTY_BOOK);
+      setTagsInput('');
+      setEditingBook(null);
+      onSaved();
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
+        'Something went wrong while saving the book.';
+      setError(message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setForm(EMPTY_BOOK);
+    setTagsInput('');
+    setEditingBook(null);
+    setError(null);
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 mb-6">
-      <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full p-2 border rounded" placeholder="Title" required />
-      <input value={form.author} onChange={(e) => setForm({ ...form, author: e.target.value })} className="w-full p-2 border rounded" placeholder="Author" required />
-      <input value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} className="w-full p-2 border rounded" placeholder="Tags (comma separated)" />
-      <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="w-full p-2 border rounded">
+    <form onSubmit={handleSubmit} className="space-y-3 mb-6">
+      {error && (
+        <div className="rounded border border-red-300 bg-red-50 p-2 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      <input
+        className="w-full p-2 border rounded"
+        placeholder="Title"
+        value={form.title}
+        onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
+        required
+      />
+
+      <input
+        className="w-full p-2 border rounded"
+        placeholder="Author"
+        value={form.author}
+        onChange={(e) => setForm((prev) => ({ ...prev, author: e.target.value }))}
+        required
+      />
+
+      <input
+        className="w-full p-2 border rounded"
+        placeholder="Tags (comma separated)"
+        value={tagsInput}
+        onChange={(e) => setTagsInput(e.target.value)}
+        onBlur={() => {
+          // normalize lightly on blur (optional)
+          setTagsInput(parseTags(tagsInput).join(', '));
+        }}
+      />
+
+      <select
+        className="w-full p-2 border rounded"
+        value={form.status}
+        onChange={(e) =>
+          setForm((prev) => ({ ...prev, status: e.target.value as BookStatus }))
+        }
+      >
         <option value="Want to Read">📖 Want to Read</option>
         <option value="Reading">📘 Reading</option>
-        <option value="ompleted">✅ Completed</option>
+        <option value="Completed">✅ Completed</option>
       </select>
-      <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">{editingBook ? 'Update' : 'Add'} Book</button>
+
+      <div className="flex gap-2">
+        <button
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+          disabled={saving || !form.title.trim() || !form.author.trim()}
+        >
+          {saving ? 'Saving…' : isEdit ? 'Update Book' : 'Add Book'}
+        </button>
+
+        {isEdit && (
+          <button
+            type="button"
+            className="border px-4 py-2 rounded"
+            onClick={handleCancel}
+            disabled={saving}
+          >
+            Cancel
+          </button>
+        )}
+      </div>
     </form>
-  )
+  );
 }
