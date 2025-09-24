@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, Dispatch, SetStateAction } from 'react';
 import api from '@/lib/api';
 
 type BookStatus = 'Want to Read' | 'Reading' | 'Completed';
@@ -14,7 +14,7 @@ type Book = {
 
 type Props = {
   editingBook: Book | null;
-  setEditingBook: (b: Book | null) => void;
+  setEditingBook: Dispatch<SetStateAction<Book | null>>;
   onSaved: () => void;
 };
 

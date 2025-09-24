@@ -1,4 +1,6 @@
 'use client';
+import { Dispatch, SetStateAction } from 'react';
+// import type { Book } from './BookForm';
 import api from '@/lib/api';
 
 export type Book = {
@@ -11,7 +13,7 @@ export type Book = {
 
 type Props = {
   books: Book[];
-  onEdit: (b: Book) => void;
+  onEdit: Dispatch<SetStateAction<Book | null>>;
   onChanged: () => void;
 };
 

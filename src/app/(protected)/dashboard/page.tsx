@@ -3,7 +3,13 @@ import { useEffect, useMemo, useState } from 'react';
 import useAuth from '@/hooks/useAuth';
 import api from '@/lib/api';
 import BookForm from './BookForm';
-import BookList, { Book } from './BookList';
+import BookList from './BookList';
+type Book = {
+  id: string;
+  title: string;
+  status: string;
+  tags: string[];
+};
 import FilterBar from '@/components/FilterBar';
 
 export default function DashboardPage() {
